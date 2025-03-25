@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server # The directory containing your backend server's Dockerfile
+      dockerfile: Dockerfile
+    container_name: code_reviewer_server
+    restart: always
+    env_file:
+      - ./server/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  client:
+    build:
+      context: ./client # Path to your frontend project
+      dockerfile: Dockerfile
+    container_name: frontend_client
+    restart: always
+    env_file:
+      - ./client/.env
+    ports:
+      - "5173:5173" # Change this if using a different frontend port (Vite default is 5173)
+    depends_on:
+      - server
+    volumes:
+      - ./client:/app # Bind mount for live reloading (optional)
+      - /app/node_modules # Avoid overwriting node_modules with the bind mount
+
+volumes:
+  postgres_data:
+    driver: local
