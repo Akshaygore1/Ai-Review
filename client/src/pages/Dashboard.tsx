@@ -9,27 +9,25 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, GitBranch, AlertCircle, Github, LogOut } from "lucide-react";
-import CodeReviewDashboard, { ReviewDataType } from "./components/CodeReview";
-import Login from "./components/Login";
+import { Loader2, GitBranch, AlertCircle } from "lucide-react";
+import CodeReviewDashboard, { ReviewDataType } from "@/components/CodeReview";
 import axios from "axios";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
-// read env from vite application
 const URL = import.meta.env.VITE_API_URL;
+
 const isValidGitHubUrl = (url: string): boolean => {
   const githubUrlPattern =
     /^(https?:\/\/)?(www\.)?github\.com\/[\w-]+\/[\w-]+\/?$/;
   return githubUrlPattern.test(url.trim());
 };
 
-function AppContent() {
-  const { user, login, logout } = useAuth();
+export default function Dashboard() {
   const [repoUrl, setRepoUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [reviewData, setReviewData] = useState<ReviewDataType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [queryError, setQueryError] = useState<Error | null>(null);
+
   const fetchAnalysis = async (url: string) => {
     try {
       const response = await axios.post(`${URL}/gitUrl`, { gitUrl: url });
@@ -45,10 +43,8 @@ function AppContent() {
   };
 
   const handleAnalyzeRepository = async () => {
-    // Reset previous states
     setUrlError("");
 
-    // Validate before proceeding
     if (!isValidGitHubUrl(repoUrl)) {
       setUrlError("Invalid GitHub repository URL");
       return;
@@ -58,10 +54,7 @@ function AppContent() {
       setIsLoading(true);
       const data = await fetchAnalysis(repoUrl);
       setReviewData(data.data);
-      setIsLoading(false);
     } catch (error) {
-      setIsLoading(false);
-
       console.error("Error", error);
       setUrlError("Failed to analyze repository. Please try again.");
     } finally {
@@ -73,40 +66,19 @@ function AppContent() {
     const inputUrl = e.target.value;
     setRepoUrl(inputUrl);
 
-    // Validate URL in real-time
     if (inputUrl && !isValidGitHubUrl(inputUrl)) {
       setUrlError("Please enter a valid GitHub repository URL");
     } else {
       setUrlError("");
     }
   };
-  console.log("reviewData", reviewData);
-  if (!user) {
-    return <Login />;
-  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 p-4">
+    <div className="w-full">
       {reviewData.length > 0 ? (
-        <div className="w-full">
-          <div className="flex justify-end mb-4">
-            <div className="flex items-center gap-4">
-              <span className="text-white">Welcome, {user.login}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
-            </div>
-          </div>
-          <CodeReviewDashboard reviewData={reviewData} />
-        </div>
+        <CodeReviewDashboard reviewData={reviewData} />
       ) : (
-        <Card className="w-full max-w-md shadow-xl bg-black border-black">
+        <Card className="w-full max-w-md mx-auto shadow-xl bg-black border-black">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white dark:text-white">
               <GitBranch className="w-6 h-6 text-red-600" />
@@ -163,13 +135,5 @@ function AppContent() {
         </Card>
       )}
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   );
 }
