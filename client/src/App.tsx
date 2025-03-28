@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, GitBranch, AlertCircle, Github, LogOut } from "lucide-react";
+import { Loader2, GitBranch, AlertCircle, LogOut } from "lucide-react";
 import CodeReviewDashboard, { ReviewDataType } from "./components/CodeReview";
 import Login from "./components/Login";
 import axios from "axios";
@@ -24,18 +24,22 @@ const isValidGitHubUrl = (url: string): boolean => {
 };
 
 function AppContent() {
-  const { user, login, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [repoUrl, setRepoUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [reviewData, setReviewData] = useState<ReviewDataType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [queryError, setQueryError] = useState<Error | null>(null);
+
   const fetchAnalysis = async (url: string) => {
     try {
       const response = await axios.post(`${URL}/gitUrl`, { gitUrl: url });
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        setQueryError(
+          error.request?.response?.data?.message || "Failed to fetch analysis"
+        );
         throw new Error(
           error.response?.data?.message || "Failed to fetch analysis"
         );
@@ -80,88 +84,68 @@ function AppContent() {
       setUrlError("");
     }
   };
-  console.log("reviewData", reviewData);
+  console.log("reviewData", user);
   if (!user) {
     return <Login />;
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 p-4">
-      {reviewData.length > 0 ? (
-        <div className="w-full">
-          <div className="flex justify-end mb-4">
-            <div className="flex items-center gap-4">
-              <span className="text-white">Welcome, {user.login}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
+      <Card className="w-full max-w-md shadow-xl bg-black border-black">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white dark:text-white">
+            <GitBranch className="w-6 h-6 text-red-600" />
+            Code Review Dashboard
+          </CardTitle>
+          <CardDescription className="dark:text-slate-300">
+            Analyze GitHub repositories for code quality
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Input
+                placeholder="Enter GitHub repository URL"
+                value={repoUrl}
+                onChange={handleUrlChange}
+                className="text-white"
+                disabled={isLoading}
+              />
+              {(urlError || queryError) && (
+                <div className="flex items-center text-red-500 text-sm mt-2">
+                  <AlertCircle className="mr-2 w-4 h-4" />
+                  {urlError ||
+                    (queryError instanceof Error
+                      ? queryError.message
+                      : "An error occurred")}
+                </div>
+              )}
             </div>
+            ``
+            <Button
+              onClick={handleAnalyzeRepository}
+              disabled={!isValidGitHubUrl(repoUrl) || isLoading}
+              className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                "Analyze Repository"
+              )}
+            </Button>
           </div>
-          <CodeReviewDashboard reviewData={reviewData} />
-        </div>
-      ) : (
-        <Card className="w-full max-w-md shadow-xl bg-black border-black">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white dark:text-white">
-              <GitBranch className="w-6 h-6 text-red-600" />
-              Code Review Dashboard
-            </CardTitle>
-            <CardDescription className="dark:text-slate-300">
-              Analyze GitHub repositories for code quality
-            </CardDescription>
-          </CardHeader>
+        </CardContent>
 
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Input
-                  placeholder="Enter GitHub repository URL"
-                  value={repoUrl}
-                  onChange={handleUrlChange}
-                  className="text-white"
-                  disabled={isLoading}
-                />
-                {(urlError || queryError) && (
-                  <div className="flex items-center text-red-500 text-sm mt-2">
-                    <AlertCircle className="mr-2 w-4 h-4" />
-                    {urlError ||
-                      (queryError instanceof Error
-                        ? queryError.message
-                        : "An error occurred")}
-                  </div>
-                )}
-              </div>
-
-              <Button
-                onClick={handleAnalyzeRepository}
-                disabled={!isValidGitHubUrl(repoUrl) || isLoading}
-                className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  "Analyze Repository"
-                )}
-              </Button>
-            </div>
-          </CardContent>
-
-          <CardFooter>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Our AI will evaluate code quality, security, and best practices.
-            </p>
-          </CardFooter>
-        </Card>
-      )}
+        <CardFooter>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Our AI will evaluate code quality, security, and best practices.
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

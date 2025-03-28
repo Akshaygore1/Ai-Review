@@ -6,6 +6,7 @@ interface User {
   id: string;
   login: string;
   avatar_url: string;
+  displayName: string;
 }
 
 interface AuthContextType {
@@ -47,8 +48,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       );
       setUser(response.data);
-      navigate("/");
+      navigate("/home");
     } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Failed to fetch user");
+      } else {
+        setError("An unexpected error occurred");
+      }
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -66,6 +72,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       setUser(null);
     } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Failed to fetch user");
+      } else {
+        setError("An unexpected error occurred");
+      }
       setError("Failed to logout");
     }
   };

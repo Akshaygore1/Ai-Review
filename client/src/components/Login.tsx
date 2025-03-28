@@ -1,5 +1,3 @@
-import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
   CardContent,
@@ -10,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Github, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const { login, isLoading, error } = useAuth();

@@ -12,7 +12,12 @@ export default function Layout() {
       {user && (
         <div className="flex justify-end mb-4">
           <div className="flex items-center gap-4">
-            <span className="text-white">Welcome, {user.login}</span>
+            <div className="text-white bg-black">
+              Welcome,
+              <span className="ml-2 p-2 bg-white rounded-full text-black">
+                {user.displayName}
+              </span>
+            </div>
             <Button
               variant="outline"
               size="sm"
