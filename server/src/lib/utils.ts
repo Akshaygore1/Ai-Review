@@ -166,3 +166,23 @@ export function extractJsonFromMarkdown(response: string) {
     return null;
   }
 }
+
+export async function getRepos(url: string | null | undefined) {
+  if (!url) {
+    return [];
+  }
+  const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+  if (!match) {
+    return [];
+  }
+  const response = await axios.get(url, { headers });
+  // const response = await axios.get(url);
+  const repos = response.data.map((repo: any) => {
+    return {
+      name: repo.name,
+      url: repo.html_url,
+    };
+  });
+
+  return repos;
+}

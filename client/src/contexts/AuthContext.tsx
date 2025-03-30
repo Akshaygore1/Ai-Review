@@ -2,11 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+interface Repo {
+  name: string;
+  url: string;
+}
 interface User {
-  id: string;
-  login: string;
-  avatar_url: string;
-  displayName: string;
+  name: string;
+  username: string;
+  repos_url: string;
+  repos: Repo[];
 }
 
 interface AuthContextType {

@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { LogOut } from "lucide-react";
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  console.log("user", user);
 
   return (
     <div className="min-h-screen bg-gray-950 p-4">
@@ -15,7 +15,7 @@ export default function Layout() {
             <div className="text-white bg-black">
               Welcome,
               <span className="ml-2 p-2 bg-white rounded-full text-black">
-                {user.displayName}
+                {user.name}
               </span>
             </div>
             <Button

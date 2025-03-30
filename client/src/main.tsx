@@ -14,7 +14,7 @@ import "./index.css";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
-
+  console.log("user", user);
   if (isLoading) {
     return <div>Loading...</div>;
   }

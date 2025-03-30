@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,6 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Loader2, GitBranch, AlertCircle } from "lucide-react";
 import CodeReviewDashboard, { ReviewDataType } from "@/components/CodeReview";
 import axios from "axios";
+import { useAuth } from "@/contexts/AuthContext";
+import Login from "@/components/Login";
+import { Navigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -22,11 +32,13 @@ const isValidGitHubUrl = (url: string): boolean => {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [repoUrl, setRepoUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [reviewData, setReviewData] = useState<ReviewDataType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [queryError, setQueryError] = useState<Error | null>(null);
+  const [selectedRepo, setSelectedRepo] = useState<string>("");
 
   const fetchAnalysis = async (url: string) => {
     try {
@@ -62,23 +74,18 @@ export default function Dashboard() {
     }
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputUrl = e.target.value;
-    setRepoUrl(inputUrl);
-
-    if (inputUrl && !isValidGitHubUrl(inputUrl)) {
-      setUrlError("Please enter a valid GitHub repository URL");
-    } else {
-      setUrlError("");
+  useEffect(() => {
+    if (!user) {
+      <Navigate to="/login" />;
     }
-  };
+  }, [user]);
 
   return (
-    <div className="w-full">
+    <div className="w-full flex justify-center items-center">
       {reviewData.length > 0 ? (
         <CodeReviewDashboard reviewData={reviewData} />
       ) : (
-        <Card className="w-full max-w-md mx-auto shadow-xl bg-black border-black">
+        <Card className="w-full max-w-md mx-auto shadow-xl bg-black border-black ">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white dark:text-white">
               <GitBranch className="w-6 h-6 text-red-600" />
@@ -91,16 +98,33 @@ export default function Dashboard() {
 
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <Input
-                  placeholder="Enter GitHub repository URL"
-                  value={repoUrl}
-                  onChange={handleUrlChange}
-                  className="text-white"
-                  disabled={isLoading}
-                />
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Select
+                    value={selectedRepo}
+                    onValueChange={(value) => {
+                      setSelectedRepo(value);
+                      setRepoUrl(
+                        user?.repos.find((repo) => repo.name === value)?.url ||
+                          ""
+                      );
+                    }}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="w-full text-white">
+                      <SelectValue placeholder="Select repo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {user?.repos.map((repo) => (
+                        <SelectItem key={repo.name} value={repo.name}>
+                          {repo.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {(urlError || queryError) && (
-                  <div className="flex items-center text-red-500 text-sm mt-2">
+                  <div className="flex items-center text-red-500 text-sm">
                     <AlertCircle className="mr-2 w-4 h-4" />
                     {urlError ||
                       (queryError instanceof Error

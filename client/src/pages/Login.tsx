@@ -1,4 +1,3 @@
-import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -45,10 +44,6 @@ export default function Login() {
               </>
             )}
           </Button>
-
-          {error && (
-            <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
-          )}
         </CardContent>
 
         <CardFooter>

@@ -13,10 +13,16 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: [Config.CLIENT_URL],
+    origin: Config.CLIENT_URL.replace(/\/$/, ""), // Remove trailing slash if present
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "X-Requested-With",
+    ],
+    exposedHeaders: ["Set-Cookie"],
   })
 );
 
@@ -28,10 +34,11 @@ app.use(
     saveUninitialized: false,
     proxy: true,
     cookie: {
-      secure: false,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
+      path: "/",
       domain: process.env.NODE_ENV === "production" ? undefined : "localhost",
     },
   })
